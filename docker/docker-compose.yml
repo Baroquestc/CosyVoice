@@ -1,0 +1,43 @@
+version: '3.8'
+services:
+  cosyvoice:
+    image: crpi-ivlhouoflcvfbqs7.cn-beijing.personal.cr.aliyuncs.com/baroquestc/cuda:12.4.1-cudnn-devel-ubuntu22.04
+    container_name: cosyvoice_container
+
+    # --- 端口映射 ---
+    ports:
+      - "9999:9999"  # CosyVoice API service port
+      # - "9996:9996"  # CosyVoice WebSocket service port
+      - "7860:7860"  # Gradio UI port
+
+    # --- 挂载卷 ---
+    volumes:
+      - "${HOME}/:/workspace"
+
+    # --- 资源限制和系统设置 ---
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      stack:
+        soft: 67108864
+        hard: 67108864
+
+    # --- GPU 和 IPC 设置 ---
+    # 共享主机的 IPC 命名空间，对某些需要高效进程间通信的应用（如共享内存）很重要
+    ipc: host
+
+    # 启用 NVIDIA GPU 支持
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+    # --- 交互式和 TTY 设置 ---
+    # 保持容器在前台运行并分配一个伪 TTY
+    # 这对于需要交互式 shell 的镜像是必需的
+    tty: true
+    stdin_open: true
